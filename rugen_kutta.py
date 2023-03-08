@@ -159,7 +159,7 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
     print('\n\nError using Rugen Kutta Fehlberg= ', error)
 
 def rugen_kutta_fehlberg_fixed(eq, x, y, h, n):
-    pheaders = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5', 'k6']
+    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5', 'k6']
     rows= []
     print('\n\n\t\t Rugen-Kutta Fehlberg with fixed h')
     #print('y(',x,')=',y)
