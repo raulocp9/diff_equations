@@ -34,7 +34,7 @@ def rugen_kutta(eq, x, y, h, n, verbose, hide):
     return y
 
 def rugen_kutta_error(y0, y1):
-    return 1/30 * y0 - y1
+    return 1/30 *( y0 - y1)
 
 def menu():
     #x, y, z, t= symbols('x y z t', real=True)
