@@ -24,6 +24,7 @@ def rugen_kutta(eq, x, y, h, n, verbose, hide):
         y_old = y
         y = y + (h/6)*(k1+2*k2+2*k3+k4)
         x= x+h
+        x = round(x,4)
         #print('y({:.8f})={:.8f}'.format(x,y))
     #print('y({:.8f})={:.8f}'.format(x,y))   
     if hide == False and verbose == True:
@@ -45,7 +46,7 @@ def menu():
     n = int(input('Enter the number of steps: '))
     # Error control
     print('\n\nError control in Rugen-Kutta Felhberg method.')
-    h_max = float(input('Enter the maximum stepsize (h max) (same h is recommended): '))
+    print('(h max) is equal to h ')
     h_min = float(input('Enter the minimum stepsize (h min): '))
     tolerance = float(input('Enter a tolerance: '))
     print('Do you want full results (Y/n)')
@@ -55,7 +56,7 @@ def menu():
     else:
         verbose = False
     
-    return eq, initial_point_x, initial_point_y, h, n, verbose, h_min, h_max, tolerance
+    return eq, initial_point_x, initial_point_y, h, n, verbose, h_min, tolerance
 
 def equation(eq, x_i, y_i):
     #expression= eq.subs([(x, 2),(y, -1)])
@@ -63,18 +64,22 @@ def equation(eq, x_i, y_i):
     value = expression(x_i, y_i)
     return value
 
-def show(eq, initial_point_x, initial_point_y, h, n):
+def show(eq, initial_point_x, initial_point_y, h, n, h_min, tolerance):
     print('\n\n\t\tEquation entered: ')
     init_printing()
     pprint(eq, use_unicode = True)  
     print('The step size h= ',h)
     print('x= ', initial_point_x)
     print('y(0)= ',initial_point_y)
-    print('Steps= ',n)
+    print('Steps= ', n)
+    print('\n Control error')
+    print('h max = h =',h)
+    print('h min = ',h_min)
+    print('Tolerance = ',tolerance)
  
 def rugen_kutta_merson(eq, x, y, h, n, verbose):
     print('\n\n \t\tRugen-Kutta Merson')
-    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4']
+    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5','k6']
     rows= []
     #print('y(',x,')=',y)
     for k in range(n+1):
@@ -87,35 +92,45 @@ def rugen_kutta_merson(eq, x, y, h, n, verbose):
         y_old = y
         y = y + (k1 + 4*k4 + k5)/6
         x= x+h
+        x= round(x,4)
         #print('y({:.8f})={:.8f}'.format(x,y))
+    error = 1/30 * (2*k1 - 9*k3 + 8*k4 - k5)
     if verbose == True:
         print(tabulate(rows, headers=headers, showindex=True))
     else:
         print('The value of x={:.4f}, y={}'.format(x-h, y_old))
-    error = 1/30 * (2*k1 - 9*k3 + 8*k4 - k5)
     print('\n Error= ', error)
 
-def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n):
-    print('\n\n\t\t Rugen-Kutta Fehlberg')
+def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
+    print('\n\n\t\t Rugen-Kutta Fehlberg with error control')
+    b = n * h_max
     h = h_max
-    #print('y(',x,')=',y)
-    for k in range(n):
+    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5', 'k6']
+    rows= []
+    k = 1
+    while(True):
+        x = round(x, 4)
+        if x > b:
+            break
+      
         k1 = h * equation(eq, x, y)
         k2 = h * equation(eq, x + h/4, y + k1/4)
         k3 = h * equation(eq, x + 3/8*h, y + 3/32*k1 + 9/32*k2)
         k4 = h * equation(eq, x + 12/13*h, y + 1932/2197*k1 - 7200/2197*k2 + 7296/2197*k3)
         k5 = h * equation(eq, x + h, y + 439/216*k1 - 8*k2 + 3680/513*k3 - 845/4104*k4)
         k6 = h * equation(eq, x + h/2, y - 8/21*k1 + 2*k2 - 3544/2565*k3 + 1859/4104*k4 - 11/40*k5)
-        y = y + (16/135*k1 + 6656/12825*k2 +28561/56430*k4 -9/50*k5 + 2/55*k6) 
-        x= x+h
         #y_4 = y + (25/216 * k1 + 1408/2565 * k3 + 2197/4104* k4 -k5/5)
         #y_5 = y + (16/135 * k5 + 6656/12825 * k3 + 28561/56430 * k4 - 9/50 * k5 + 2/55 * k6)
         r = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)/h
+        error = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)
         q = 0.84 * abs((tolerance / r))**(1/4)
-
+        rows.append([x, y, k1, k2, k3, k4, k5, k6])
         if r > tolerance:
-            print(f' Error is bigger than tolerance in step {k+1}')
+            print(f' Error is bigger than tolerance in step {k}')
             return None
+        y_old = y
+        y = y + (16/135*k1 + 6656/12825*k2 +28561/56430*k4 -9/50*k5 + 2/55*k6) 
+        x= x+h
 
         if q < 0.1:
             h = 0.1 * h
@@ -129,28 +144,37 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n):
         if h < h_min:
             print('Step is smaller than the minimum step (h min)')
             return None
-        
-    error = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)
-    print('\n\nThe value of x={:.4f}, y={}'.format(x, y))
+        k += 1
+    if verbose == True:
+        print(tabulate(rows, headers=headers, showindex=True))
+    else:
+        print('\n\nThe value of x={:.4f}, y={}'.format(x-h, y_old))
     print('\n\nError using Rugen Kutta Fehlberg= ', error)
 
 def rugen_kutta_fehlberg_fixed(eq, x, y, h, n):
+    pheaders = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5', 'k6']
+    rows= []
     print('\n\n\t\t Rugen-Kutta Fehlberg with fixed h')
     #print('y(',x,')=',y)
-    for k in range(n):
+    for k in range(n+1):
         k1 = h * equation(eq, x, y)
         k2 = h * equation(eq, x + h/4, y + k1/4)
         k3 = h * equation(eq, x + 3/8*h, y + 3/32*k1 + 9/32*k2)
         k4 = h * equation(eq, x + 12/13*h, y + 1932/2197*k1 - 7200/2197*k2 + 7296/2197*k3)
         k5 = h * equation(eq, x + h, y + 439/216*k1 - 8*k2 + 3680/513*k3 - 845/4104*k4)
         k6 = h * equation(eq, x + h/2, y - 8/21*k1 + 2*k2 - 3544/2565*k3 + 1859/4104*k4 - 11/40*k5)
+       
+        error = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)
+        rows.append([x, y, k1, k2, k3, k4, k5, k6])
+        y_old = y
         y = y + (16/135*k1 + 6656/12825*k2 +28561/56430*k4 -9/50*k5 + 2/55*k6) 
         x= x+h
+        x = round(x,4)
         #y_4 = y + (25/216 * k1 + 1408/2565 * k3 + 2197/4104* k4 -k5/5)
         #y_5 = y + (16/135 * k5 + 6656/12825 * k3 + 28561/56430 * k4 - 9/50 * k5 + 2/55 * k6)
        
     error = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)
-    print('\n\nThe value of x={:.4f}, y={}'.format(x, y))
+    print('\n\nThe value of x={:.4f}, y={}'.format(x-h, y_old))
     print('\n\nError using Rugen Kutta Fehlberg= ', error)
 
 def main_menu():
@@ -172,8 +196,8 @@ def main_menu():
 if __name__ == '__main__':
     while True:
         main_menu()
-        eq, initial_point_x,initial_point_y, h, n, verbose, h_min, h_max, tolerance = menu()
-        show(eq, initial_point_x, initial_point_y, h, n)
+        eq, initial_point_x,initial_point_y, h, n, verbose, h_min, tolerance = menu()
+        show(eq, initial_point_x, initial_point_y, h, n, h_min, tolerance)
     
         y0 =rugen_kutta(eq, initial_point_x, initial_point_y, h, n, verbose, hide=False, )
         y1 = rugen_kutta(eq, initial_point_x, initial_point_y, h*2, n/2, verbose, hide=True)
@@ -181,4 +205,4 @@ if __name__ == '__main__':
         print('\n The local truncate error for Rugen-Kutta 4 order with h={} is: {:.10f}'.format(h, error))
         rugen_kutta_merson(eq, initial_point_x, initial_point_y, h, n, verbose)
         rugen_kutta_fehlberg_fixed(eq, initial_point_x, initial_point_y, h, n)
-        rugen_kutta_fehlberg(eq, initial_point_x, initial_point_y, h_min, h_max, tolerance, n) 
+        rugen_kutta_fehlberg(eq, initial_point_x, initial_point_y, h_min, h, tolerance, n, verbose) 
