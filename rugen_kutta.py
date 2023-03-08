@@ -105,11 +105,13 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
     print('\n\n\t\t Rugen-Kutta Fehlberg with error control')
     b = n * h_max
     h = h_max
-    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5', 'k6']
+    succeed = True
+    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5', 'k6','h', 'r']
     rows= []
     k = 1
     while(True):
         x = round(x, 4)
+        h = round(h, 4)
         if x > b:
             break
       
@@ -118,20 +120,22 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
         k3 = h * equation(eq, x + 3/8*h, y + 3/32*k1 + 9/32*k2)
         k4 = h * equation(eq, x + 12/13*h, y + 1932/2197*k1 - 7200/2197*k2 + 7296/2197*k3)
         k5 = h * equation(eq, x + h, y + 439/216*k1 - 8*k2 + 3680/513*k3 - 845/4104*k4)
-        k6 = h * equation(eq, x + h/2, y - 8/21*k1 + 2*k2 - 3544/2565*k3 + 1859/4104*k4 - 11/40*k5)
+        k6 = h * equation(eq, x + h/2, y - 8/27*k1 + 2*k2 - 3544/2565*k3 + 1859/4104*k4 - 11/40*k5)
         #y_4 = y + (25/216 * k1 + 1408/2565 * k3 + 2197/4104* k4 -k5/5)
         #y_5 = y + (16/135 * k5 + 6656/12825 * k3 + 28561/56430 * k4 - 9/50 * k5 + 2/55 * k6)
         r = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)/h
         error = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)
         q = 0.84 * abs((tolerance / r))**(1/4)
-        rows.append([x, y, k1, k2, k3, k4, k5, k6])
+        rows.append([x, y, k1, k2, k3, k4, k5, k6, h, r])
         if r > tolerance:
-            print(f' Error is bigger than tolerance in step {k}')
-            return None
+            print(f'\n Error is bigger than tolerance in step {k}')
+            succeed = False
+            break
+        # print(' x= ',x,' y=  ',y,' h=',h)
         y_old = y
         y = y + (16/135*k1 + 6656/12825*k2 +28561/56430*k4 -9/50*k5 + 2/55*k6) 
         x= x+h
-
+        
         if q < 0.1:
             h = 0.1 * h
         elif q >= 4:
@@ -141,13 +145,16 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
 
         if h > h_max:
             h = h_max
-        if h < h_min:
-            print('Step is smaller than the minimum step (h min)')
-            return None
+        elif x > b:
+            x = b - x
+        if h <= h_min:
+            print('\nStep is smaller than the minimum step (h min). No succeed')
+            succeed = False
+            break
         k += 1
     if verbose == True:
         print(tabulate(rows, headers=headers, showindex=True))
-    else:
+    elif succeed == True:
         print('\n\nThe value of x={:.4f}, y={}'.format(x-h, y_old))
     print('\n\nError using Rugen Kutta Fehlberg= ', error)
 
@@ -162,7 +169,7 @@ def rugen_kutta_fehlberg_fixed(eq, x, y, h, n):
         k3 = h * equation(eq, x + 3/8*h, y + 3/32*k1 + 9/32*k2)
         k4 = h * equation(eq, x + 12/13*h, y + 1932/2197*k1 - 7200/2197*k2 + 7296/2197*k3)
         k5 = h * equation(eq, x + h, y + 439/216*k1 - 8*k2 + 3680/513*k3 - 845/4104*k4)
-        k6 = h * equation(eq, x + h/2, y - 8/21*k1 + 2*k2 - 3544/2565*k3 + 1859/4104*k4 - 11/40*k5)
+        k6 = h * equation(eq, x + h/2, y - 8/27*k1 + 2*k2 - 3544/2565*k3 + 1859/4104*k4 - 11/40*k5)
        
         error = (k1/360 -128/4275 * k3 -2197/75240 * k4 + k5/50 + 2/55 * k6)
         rows.append([x, y, k1, k2, k3, k4, k5, k6])
