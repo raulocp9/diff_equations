@@ -135,14 +135,12 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
         y_old = y
         y = y + 25/216* k1 + 1408/2565 * k3 + 2197/4104* k4 - 1/5* k5 
         x= x+h
-        print(r,' \t\t',tolerance,'\t\t',q)
         if q <= 0.1:
             h = 0.1 * h
         elif q >= 4:
             h = 4 * h
         else:
             h = q * h
-        print('\t\t', h)
         if h > h_max:
             h = h_max
         elif x > b:
