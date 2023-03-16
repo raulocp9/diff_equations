@@ -71,7 +71,7 @@ def show(eq, initial_point_x, initial_point_y, h, n, h_min, tolerance):
     print('Tolerance = ',tolerance)
 def rugen_kutta_merson(eq, x, y, h, n, verbose):
     print('\n\n \t\tRugen-Kutta Merson')
-    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5','k6']
+    headers = ['i', 'x', 'y', 'k1', 'k2', 'k3', 'k4','k5','error']
     rows= []
     #print('y(',x,')=',y)
     for k in range(n+1):
@@ -89,7 +89,7 @@ def rugen_kutta_merson(eq, x, y, h, n, verbose):
         #print('y({:.8f})={:.8f}'.format(x,y))
     error = 1/30 * (2*k1 - 9*k3 + 8*k4 - k5)
     if verbose == True:
-        print(tabulate(rows, headers=headers, showindex=True, floatfmt=('.6f','.6f','.6f','.6f','.6f','.6f','.6f','.6','.6','.6')))
+        print(tabulate(rows, headers=headers, showindex=True, floatfmt=('.6f','.6f','.6f','.6f','.6f','.6f','.6f','.6f','.6f','.6f')))
     else:
         print('The value of x={:.4f}, y={}'.format(x-h, y_old))
     print('\n Error= ', error)
@@ -146,7 +146,7 @@ def rugen_kutta_fehlberg(eq, x, y, h_min, h_max, tolerance, n, verbose):
         k += 1 
 
     if verbose == True:
-        print(tabulate(rows, headers=headers, showindex=True, floatfmt=('.6f','.6f','.6f','.6f','.6f','.6f','.6f','.6','.6','.6')))
+        print(tabulate(rows, headers=headers, showindex=True, floatfmt=('.6f','.6f','.6f','.6f','.6f','.6f','.6','.6','.6')))
     elif succeed == True:
         print('\n\nThe value of x={:.4f}, y={}'.format(x, y))
     print('\n\nError using Rugen Kutta Fehlberg= ', error)
